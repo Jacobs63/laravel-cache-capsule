@@ -1,0 +1,17 @@
+{
+    "name": "coderaworks/laravel-cache-capsule",
+    "description": "Laravel cache wrapper for Symfony caching mechanism",
+    "type": "library",
+    "require": {
+        "php": "^8.3",
+        "laravel/framework": "^11.0.0",
+        "symfony/cache": "^7.0.3"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Coderaworks\\LaravelCacheCapsule\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
