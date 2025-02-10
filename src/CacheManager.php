@@ -4,22 +4,30 @@ declare(strict_types=1);
 
 namespace Coderaworks\LaravelCacheCapsule;
 
+use Illuminate\Cache\CacheManager as DefaultCacheManager;
+use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Contracts\Events\Dispatcher;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 
-class CacheManager extends \Illuminate\Cache\CacheManager
+class CacheManager extends DefaultCacheManager
 {
-    protected function createRedisDriver(array $config)
+    protected function createRedisDriver(array $config): Repository
     {
-        return $this->repository(
+        $repository = new CacheRepository(
             new CacheStore(
                 new RedisAdapter(
                     $this->app->make('redis')
-                        ->connection($config['stores.redis.connection'])
+                        ->connection($config['connection'] ?? 'default')
                         ->client(),
                 ),
-                $this->getPrefix($config),
             ),
             $config,
         );
+
+        if (($config['events'] ?? true) && $this->app->bound(Dispatcher::class)) {
+            $repository->setEventDispatcher($this->app->make(Dispatcher::class));
+        }
+
+        return $repository;
     }
 }

@@ -4,25 +4,26 @@ declare(strict_types=1);
 
 namespace Coderaworks\LaravelCacheCapsule;
 
+use Illuminate\Contracts\Cache\Store;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @property TagAwareAdapter $adapter
  */
-class TaggedStore extends CacheStore
+class TaggedStore extends CacheStore implements TaggableStoreInterface
 {
     protected array $tags = [];
 
     public function __construct(
+        protected readonly Store $store,
         TagAwareAdapter $adapter,
-        string $prefix,
     )
     {
-        parent::__construct($adapter, $prefix);
+        parent::__construct($adapter);
     }
 
-    public function tags(string|array $tags): TaggedStore
+    public function tags($tags): static
     {
         $this->tags = is_array($tags) ? $tags : [$tags];
 

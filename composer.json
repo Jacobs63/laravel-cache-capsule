@@ -13,5 +13,12 @@
             "Coderaworks\\LaravelCacheCapsule\\": "src/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Coderaworks\\LaravelCacheCapsule\\LaravelCacheCapsuleServiceProvider"
+            ]
+        }
+    },
     "minimum-stability": "dev"
 }

@@ -7,34 +7,32 @@ namespace Coderaworks\LaravelCacheCapsule;
 use Carbon\Carbon;
 use DateInterval;
 use DateTimeInterface;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Cache\Store;
+use Illuminate\Contracts\Events\Dispatcher;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class CacheStore implements Store
 {
+    protected ?Dispatcher $events = null;
+
+    /**
+     * The default number of seconds to store items.
+     *
+     * @var int|null
+     */
+    protected $default = 3600;
+
     public function __construct(
         protected readonly AdapterInterface $adapter,
-        private readonly ?string $prefix,
     ) {
     }
 
     public function adapter(): AdapterInterface
     {
         return $this->adapter;
-    }
-
-    public function tags(string|array $tags): TaggedStore
-    {
-        $driver = new TaggedStore(
-            new TagAwareAdapter(
-                $this->adapter,
-            ),
-            $this->prefix,
-        );
-
-        return $driver->tags($tags);
     }
 
     public function get($key): mixed
@@ -70,29 +68,25 @@ class CacheStore implements Store
         return (int) max($duration, 0);
     }
 
-    public function many(array $keys)
+    public function many(array $keys): array
     {
-        $values = [];
-
-        foreach ($this->adapter->getItems($keys) as $key => $value) {
-            $values[$key] = $value;
-        }
-
-        return $values;
+        return iterator_to_array($this->adapter->getItems($keys));
     }
 
-    public function put($key, $value, $seconds)
+    public function put($key, $value, $seconds): bool
     {
-        $this->adapter->get(
+        $cachedValue = $this->adapter->get(
             $key,
             function (ItemInterface $item) use ($value, $seconds) {
-                $item->expiresAfter($this->parseTtl($seconds));
+                if ($seconds) {
+                    $item->expiresAfter($this->parseTtl($seconds));
+                }
 
                 return value($value);
             }
         );
 
-        return true;
+        return $cachedValue !== null;
     }
 
     public function putMany(array $values, $seconds)
@@ -106,32 +100,30 @@ class CacheStore implements Store
         }
     }
 
-    public function increment($key, $value = 1)
+    public function increment($key, $value = 1): bool
     {
         $oldValue = $this->get($key);
 
-        $this->forever($key, ++$oldValue);
+        return $this->forever($key, ++$oldValue);
     }
 
-    public function decrement($key, $value = 1)
+    public function decrement($key, $value = 1): bool
     {
         $oldValue = $this->get($key);
 
-        $this->forever($key, --$oldValue);
+        return $this->forever($key, --$oldValue);
     }
 
-    public function forever($key, $value)
+    public function forever($key, $value): bool
     {
-        $this->put(
+        return $this->put(
             $key,
             $value,
             0,
         );
-
-        return true;
     }
 
-    public function flush()
+    public function flush(): bool
     {
         return $this->adapter->clear();
     }
@@ -139,5 +131,29 @@ class CacheStore implements Store
     public function getPrefix()
     {
         return $this->prefix;
+    }
+
+    /**
+     * Set the event dispatcher instance.
+     *
+     * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @return void
+     */
+    public function setEventDispatcher(Dispatcher $events)
+    {
+        $this->events = $events;
+    }
+
+    /**
+     * Set the default cache time in seconds.
+     *
+     * @param  int|null  $seconds
+     * @return $this
+     */
+    public function setDefaultCacheTime($seconds)
+    {
+        $this->default = $seconds;
+
+        return $this;
     }
 }
