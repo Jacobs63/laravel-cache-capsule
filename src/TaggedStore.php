@@ -34,7 +34,7 @@ class TaggedStore extends CacheStore implements TaggableStoreInterface
         $key,
         $value,
         $seconds,
-    ) {
+    ): bool {
         $this->adapter->get(
             $key,
             function (ItemInterface $item) use ($value, $seconds) {
@@ -52,7 +52,7 @@ class TaggedStore extends CacheStore implements TaggableStoreInterface
     public function forever(
         $key,
         $value,
-    ) {
+    ): bool {
         $this->adapter->get(
             $key,
             static function (ItemInterface $item) use ($value) {
