@@ -55,7 +55,7 @@ class TaggedStore extends CacheStore implements TaggableStoreInterface
     ): bool {
         $this->adapter->get(
             $key,
-            static function (ItemInterface $item) use ($value) {
+            function (ItemInterface $item) use ($value) {
                 $item->tag($this->tags);
 
                 return value($value);
