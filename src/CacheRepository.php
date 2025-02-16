@@ -25,6 +25,11 @@ class CacheRepository implements Repository
         $this->base = new BaseRepository($this->store, $this->config);
     }
 
+    public function supportsTags(): bool
+    {
+        return true;
+    }
+
     public function get($key, $default = null): mixed
     {
         return $this->base->get($key, $default);
