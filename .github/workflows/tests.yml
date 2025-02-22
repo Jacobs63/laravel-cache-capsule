@@ -5,6 +5,7 @@ on:
     branches:
       - master
       - '*.x'
+      - feature/github-actions
   pull_request:
   schedule:
     - cron: '0 0 * * *'
