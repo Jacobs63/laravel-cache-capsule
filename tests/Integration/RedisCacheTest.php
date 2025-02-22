@@ -7,8 +7,9 @@ namespace CoderaWorks\LaravelCacheCapsule\Tests\Integration;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Foundation\Testing\Concerns\InteractsWithRedis;
-use Orchestra\Testbench\TestCase;
+//use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Tests\TestCase;
 
 class RedisCacheTest extends TestCase
 {
@@ -131,6 +132,7 @@ class RedisCacheTest extends TestCase
     {
         $repository = $this->cacheManager->driver('redis');
 
+        dump($repository, $tags);
         if ($tags) {
             return $repository->tags($tags);
         }

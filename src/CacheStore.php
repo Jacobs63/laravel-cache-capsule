@@ -33,12 +33,12 @@ class CacheStore implements Store
 
     public function get($key): mixed
     {
-        return $this->adapter()->getItem($key)->get();
+        return $this->adapter->getItem($key)->get();
     }
 
     public function forget($key): bool
     {
-        return $this->adapter()->deleteItem($key);
+        return $this->adapter->deleteItem($key);
     }
 
     protected function parseTtl(DateInterval|DateTimeInterface|int $ttl): int
@@ -66,12 +66,14 @@ class CacheStore implements Store
 
     public function many(array $keys): array
     {
-        return iterator_to_array($this->adapter()->getItems($keys));
+        return iterator_to_array($this->adapter->getItems($keys));
     }
 
     public function put($key, $value, $seconds): bool
     {
-        $cachedValue = $this->adapter()->get(
+        $this->adapter->deleteItem($key);
+
+        $cachedValue = $this->adapter->get(
             $key,
             function (ItemInterface $item) use ($value, $seconds) {
                 if ($seconds) {
@@ -87,13 +89,19 @@ class CacheStore implements Store
 
     public function putMany(array $values, $seconds)
     {
+        $manyResult = null;
+
         foreach ($values as $key => $value) {
-            $this->put(
+            $result = $this->put(
                 $key,
                 $value,
                 $seconds,
             );
+
+            $manyResult = ($manyResult === null) ? $result : $result && $manyResult;
         }
+
+        return $manyResult ?? false;
     }
 
     public function increment($key, $value = 1): bool
@@ -121,7 +129,7 @@ class CacheStore implements Store
 
     public function flush(): bool
     {
-        return $this->adapter()->clear();
+        return $this->adapter->clear();
     }
 
     public function getPrefix()

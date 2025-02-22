@@ -37,17 +37,17 @@ class CacheRepository implements Repository
 
     public function set($key, $value, $ttl = null): bool
     {
-        return $this->base->set($key, $value, $ttl);
+        return $this->store->put($key, $value, $ttl);
     }
 
     public function delete($key): bool
     {
-        return $this->base->delete($key);
+        return $this->store->forget($key);
     }
 
     public function clear(): bool
     {
-        return $this->base->clear();
+        return $this->store->flush();
     }
 
     public function getMultiple($keys, $default = null): iterable
@@ -57,7 +57,7 @@ class CacheRepository implements Repository
 
     public function setMultiple($values, $ttl = null): bool
     {
-        return $this->base->setMultiple($values, $ttl);
+        return $this->store->putMany(is_array($values) ? $values : iterator_to_array($values), $ttl);
     }
 
     public function deleteMultiple($keys): bool
@@ -77,7 +77,7 @@ class CacheRepository implements Repository
 
     public function put($key, $value, $ttl = null): bool
     {
-        return $this->base->put($key, $value, $ttl);
+        return $this->store->put($key, $value, $ttl);
     }
 
     public function add($key, $value, $ttl = null)
@@ -87,17 +87,17 @@ class CacheRepository implements Repository
 
     public function increment($key, $value = 1): bool|int
     {
-        return $this->base->increment($key, $value);
+        return $this->store->increment($key, $value);
     }
 
     public function decrement($key, $value = 1): bool|int
     {
-        return $this->base->decrement($key, $value);
+        return $this->store->decrement($key, $value);
     }
 
     public function forever($key, $value): bool
     {
-        return $this->base->forever($key, $value);
+        return $this->store->forever($key, $value);
     }
 
     public function remember($key, $ttl, Closure $callback): mixed
@@ -117,7 +117,7 @@ class CacheRepository implements Repository
 
     public function forget($key): bool
     {
-        return $this->base->forget($key);
+        return $this->store->forget($key);
     }
 
     public function getStore(): Store

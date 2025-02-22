@@ -19,6 +19,8 @@ class TaggableCacheStore extends CacheStore implements TaggableStoreInterface
         $value,
         $seconds,
     ): bool {
+        $this->adapter->deleteItem($key);
+
         $this->adapter->get(
             $key,
             function (ItemInterface $item) use ($value, $seconds) {
