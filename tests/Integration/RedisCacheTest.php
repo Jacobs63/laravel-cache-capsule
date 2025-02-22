@@ -35,6 +35,8 @@ class RedisCacheTest extends TestCase
     #[DataProvider('provideCacheableData')]
     public function testCacheWorkflowWithoutTagging(mixed $value): void
     {
+        $this->repository()->clear();
+
         $this->repository()->put('key', $value);
 
         $this->assertSame(
@@ -54,6 +56,8 @@ class RedisCacheTest extends TestCase
     #[DataProvider('provideCacheableData')]
     public function testCacheWorkflowWithTagging(mixed $value): void
     {
+        $this->repository()->clear();
+
         $this->repository('tag1')->put('key', $value);
 
         $this->assertSame(
@@ -73,6 +77,8 @@ class RedisCacheTest extends TestCase
     #[DataProvider('provideCacheableData')]
     public function testTagsDoNotMatterWhenRetrievingCachedValue(mixed $value): void
     {
+        $this->repository()->clear();
+
         $this->repository('tag1', 'tag2')->put('key', $value);
 
         $this->assertSame($value, $this->repository()->get('key'));
@@ -84,6 +90,8 @@ class RedisCacheTest extends TestCase
 
     public function testClearingTaggedCacheClearsValue(): void
     {
+        $this->repository()->clear();
+
         $assertEmpty = function () {
             $this->assertNull($this->repository()->get('key'));
             $this->assertNull($this->repository('tag1')->get('key'));
