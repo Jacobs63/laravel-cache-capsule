@@ -7,11 +7,9 @@ namespace Coderaworks\LaravelCacheCapsule;
 use Carbon\Carbon;
 use DateInterval;
 use DateTimeInterface;
-use Illuminate\Cache\TaggableStore;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Contracts\Events\Dispatcher;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
-use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 
 class CacheStore implements Store
@@ -25,9 +23,7 @@ class CacheStore implements Store
      */
     protected $default = 3600;
 
-    public function __construct(
-        protected readonly AdapterInterface $adapter,
-    ) {
+    public function __construct(protected AdapterInterface $adapter) {
     }
 
     public function adapter(): AdapterInterface
@@ -37,12 +33,12 @@ class CacheStore implements Store
 
     public function get($key): mixed
     {
-        return $this->adapter->getItem($key)->get();
+        return $this->adapter()->getItem($key)->get();
     }
 
     public function forget($key): bool
     {
-        return $this->adapter->deleteItem($key);
+        return $this->adapter()->deleteItem($key);
     }
 
     protected function parseTtl(DateInterval|DateTimeInterface|int $ttl): int
@@ -62,7 +58,7 @@ class CacheStore implements Store
         }
 
         if ($duration instanceof DateTimeInterface) {
-            $duration = $now()->diffInSeconds($duration, false);
+            $duration = $now()->diffInSeconds($duration);
         }
 
         return (int) max($duration, 0);
@@ -70,12 +66,12 @@ class CacheStore implements Store
 
     public function many(array $keys): array
     {
-        return iterator_to_array($this->adapter->getItems($keys));
+        return iterator_to_array($this->adapter()->getItems($keys));
     }
 
     public function put($key, $value, $seconds): bool
     {
-        $cachedValue = $this->adapter->get(
+        $cachedValue = $this->adapter()->get(
             $key,
             function (ItemInterface $item) use ($value, $seconds) {
                 if ($seconds) {
@@ -125,7 +121,7 @@ class CacheStore implements Store
 
     public function flush(): bool
     {
-        return $this->adapter->clear();
+        return $this->adapter()->clear();
     }
 
     public function getPrefix()

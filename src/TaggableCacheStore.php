@@ -4,31 +4,15 @@ declare(strict_types=1);
 
 namespace Coderaworks\LaravelCacheCapsule;
 
-use Illuminate\Contracts\Cache\Store;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * @property TagAwareAdapter $adapter
  */
-class TaggedStore extends CacheStore implements TaggableStoreInterface
+class TaggableCacheStore extends CacheStore implements TaggableStoreInterface
 {
     protected array $tags = [];
-
-    public function __construct(
-        protected readonly Store $store,
-        TagAwareAdapter $adapter,
-    )
-    {
-        parent::__construct($adapter);
-    }
-
-    public function tags($tags): static
-    {
-        $this->tags = is_array($tags) ? $tags : [$tags];
-
-        return $this;
-    }
 
     public function put(
         $key,
@@ -40,7 +24,9 @@ class TaggedStore extends CacheStore implements TaggableStoreInterface
             function (ItemInterface $item) use ($value, $seconds) {
                 $item->tag($this->tags);
 
-                $item->expiresAfter($this->parseTtl($seconds));
+                if ($seconds) {
+                    $item->expiresAfter($this->parseTtl($seconds));
+                }
 
                 return value($value);
             }
@@ -68,5 +54,12 @@ class TaggedStore extends CacheStore implements TaggableStoreInterface
     public function flush(): bool
     {
         return $this->adapter->invalidateTags($this->tags);
+    }
+
+    public function tags($tags): static
+    {
+        $this->tags = $tags;
+
+        return $this;
     }
 }

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Coderaworks\LaravelCacheCapsule;
 
+use BadMethodCallException;
 use Closure;
 use Illuminate\Cache\Repository as BaseRepository;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Contracts\Cache\Store;
 use Illuminate\Contracts\Events\Dispatcher;
-use Symfony\Component\Cache\Adapter\TagAwareAdapter;
 
 class CacheRepository implements Repository
 {
@@ -27,12 +27,12 @@ class CacheRepository implements Repository
 
     public function supportsTags(): bool
     {
-        return true;
+        return $this->store instanceof TaggableStoreInterface;
     }
 
     public function get($key, $default = null): mixed
     {
-        return $this->base->get($key, $default);
+        return $this->store->get($key) ?? $default;
     }
 
     public function set($key, $value, $ttl = null): bool
@@ -125,21 +125,19 @@ class CacheRepository implements Repository
         return $this->store;
     }
 
-    public function tags($names): TaggedRepository
+    /**
+     * @param string|string[] ...$names
+     * @return Repository
+     */
+    public function tags($names): Repository
     {
-        $adapter = new TagAwareAdapter($this->store->adapter());
-
-        $store = new TaggedStore($this->store, $adapter);
-
-        $store->tags(is_array($names) ? $names : func_get_args());
-
-        $repository = new TaggedRepository($store);
-
-        if ($this->events) {
-            $repository->setEventDispatcher($this->events);
+        if (! $this->supportsTags()) {
+            throw new BadMethodCallException('This cache driver does not support tagging.');
         }
 
-        return $repository;
+        $this->store->tags(is_array($names) ? $names : func_get_args());
+
+        return $this;
     }
 
     public function setEventDispatcher(Dispatcher $events): void
