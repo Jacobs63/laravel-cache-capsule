@@ -7,6 +7,7 @@ namespace Coderaworks\LaravelCacheCapsule;
 use Illuminate\Cache\CacheManager as DefaultCacheManager;
 use Illuminate\Contracts\Cache\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Redis\Factory;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Adapter\RedisTagAwareAdapter;
 use Symfony\Component\Cache\Adapter\TagAwareAdapter;
@@ -15,15 +16,21 @@ class CacheManager extends DefaultCacheManager
 {
     protected function createRedisDriver(array $config): Repository
     {
-        $redis = $this->app->make('redis')
-            ->connection($config['connection'] ?? 'default')
-            ->client();
+        /** @var Factory $redis */
+        $redis = $this->app->make('redis');
+
+        $connection = $config['connection'] ?? 'default';
 
         $adapter = new TagAwareAdapter(
-            new RedisAdapter($redis),
+            new RedisAdapter($redis->connection($connection)->client()),
         );
 
-        $store = new TaggableCacheStore($adapter);
+        $store = new RedisStore(
+            $adapter,
+            $redis,
+            $this->getPrefix($config),
+            $connection,
+        );
 
         $repository = new CacheRepository($store, $config);
 

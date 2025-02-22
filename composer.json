@@ -9,7 +9,8 @@
     },
     "require-dev": {
         "orchestra/testbench-core": "^9.9.4",
-        "phpunit/phpunit": "^10.5.35|^11.3.6|^12.0.1"
+        "phpunit/phpunit": "^10.5.35|^11.3.6|^12.0.1",
+        "predis/predis": "^2.3"
     },
     "license": "MIT",
     "autoload": {
