@@ -6,18 +6,30 @@ namespace CoderaWorks\LaravelCacheCapsule\Tests\Integration;
 
 use Illuminate\Cache\CacheManager;
 use Illuminate\Contracts\Cache\Repository;
+use Illuminate\Foundation\Testing\Concerns\InteractsWithRedis;
 use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
 class RedisCacheTest extends TestCase
 {
+    use InteractsWithRedis;
+
     private CacheManager $cacheManager;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        $this->setUpRedis();
+
         $this->cacheManager = $this->app->make('cache');
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        $this->tearDownRedis();
     }
 
     #[DataProvider('provideCacheableData')]
