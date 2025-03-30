@@ -18,6 +18,11 @@
             "Coderaworks\\LaravelCacheCapsule\\": "src/"
         }
     },
+    "autoload-dev": {
+      "psr-4": {
+        "CoderaWorks\\LaravelCacheCapsule\\Tests\\": "tests/"
+      }
+    },
     "extra": {
         "laravel": {
             "providers": [
